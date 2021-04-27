@@ -1,0 +1,63 @@
+package customerproduct
+mport java.io.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+
+public class CustomerProduct implements Serializable
+{
+private String customerID;
+private String productID;
+private Date datePurchased;
+
+public static CustomerProduct load(ResultSet rs)
+throws SQLException
+{
+CustomerProduct custprod = new CustomerProduct();
+custprod.setCustomerID(rs.getString(1));
+custprod.setProductID(rs.getString(2));
+custprod.setDatePurchased(rs.getDate(3));
+return custprod;
+}
+
+public String toString()
+{
+StringBuffer sb = new StringBuffer();
+sb.append(getCustomerID());
+sb.append(",");
+sb.append(getProductID());
+sb.append(",");
+sb.append(Util.dateFormat(getDatePurchased()));
+return sb.toString();
+}
+
+
+public String getCustomerID()
+{
+return customerID;
+}
+
+public void setCustomerID(String customerID)
+{
+this.customerID = customerID;
+}
+
+public String getProductID()
+{
+return productID;
+}
+public void setProductID(String productID)
+{
+this.productID = productID;
+}
+
+public Date getDatePurchased()
+{
+return datePurchased;
+}
+
+public void setDatePurchased(Date datePurchased)
+{
+this.datePurchased = datePurchased;
+}
+}
