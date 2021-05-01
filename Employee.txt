@@ -1,0 +1,130 @@
+package employee;
+
+import java.io.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+
+public class Employee implements Serializable
+{
+private String employeeID;
+private String name;
+private Date dateHired;
+private boolean isManager;
+private String departmentID;
+private String title;
+private String email;
+private String phone;
+
+public static Employee load(ResultSet rs)
+throws SQLException
+{
+Employee employee = new Employee();
+employee.setEmployeeID(rs.getString(1));
+employee.setName(rs.getString(2));
+employee.setDateHired(rs.getDate(3));
+employee.setIsManager(rs.getBoolean(4));
+employee.setDepartmentID(rs.getString(5));
+employee.setTitle(rs.getString(6));
+employee.setEmail(rs.getString(7));
+employee.setPhone(rs.getString(8));
+return employee;
+}
+
+public String toString()
+{
+StringBuffer sb = new StringBuffer();
+sb.append(getEmployeeID());
+sb.append(",");
+sb.append(Util.quote(getName()));
+sb.append(",");
+sb.append(Util.dateFormat(getDateHired()));
+sb.append(",");
+sb.append(getIsManager());
+sb.append(",");
+sb.append(getDepartmentID());
+sb.append(",");
+sb.append(Util.quote(getTitle()));
+sb.append(",");
+sb.append(getEmail());
+sb.append(",");
+sb.append(getPhone());
+return sb.toString();
+}
+
+public String getEmployeeID()
+{
+return employeeID;
+}
+
+public void setEmployeeID(String employeeID)
+{
+this.employeeID = employeeID;
+}
+public String getName()
+{
+return name;
+}
+
+public void setName(String name)
+{
+this.name = name;
+}
+
+public Date getDateHired()
+{
+return dateHired;
+}
+
+public void setDateHired(Date dateHired)
+{
+this.dateHired = dateHired;
+}
+
+public boolean getIsManager()
+{
+return isManager;
+}
+{
+this.isManager = isManager;
+}
+
+public String getDepartmentID()
+{
+return departmentID;
+}
+
+public void setDepartmentID(String departmentID)
+{
+this.departmentID = departmentID;
+}
+
+public String getTitle()
+{
+return title;
+}
+
+public void setTitle(String title)
+{
+this.title = title;
+}
+public String getEmail()
+{
+return email;
+}
+
+public void setEmail(String email)
+{
+this.email = email;
+}
+
+public String getPhone()
+{
+return phone;
+}
+
+public void setPhone(String phone)
+{
+this.phone = phone;
+}
+}
