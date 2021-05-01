@@ -1,0 +1,86 @@
+package problemlog;
+
+import java.io.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+
+
+public class ProblemLog implements Serializable
+{
+private String problemID;
+private java.util.Date logTime;
+private String eventID;
+private String comments;
+
+
+public static ProblemLog load(ResultSet rs)
+throws SQLException
+{
+ProblemLog probLog = new ProblemLog();
+probLog.setProblemID(rs.getString(1));
+probLog.setLogTime(rs.getTimestamp(2));
+probLog.setEventID(rs.getString(3));
+probLog.setComments(rs.getString(4));
+return probLog;
+}
+/
+
+public String toString()
+{
+StringBuffer sb = new StringBuffer();
+sb.append(getProblemID());
+sb.append(",");
+sb.append(Util.dateTimeFormat(getLogTime()));
+sb.append(",");
+sb.append(getEventID());
+sb.append(",");
+sb.append(getComments());
+return sb.toString();
+}
+
+
+public String getProblemID()
+{
+return problemID;
+}
+
+
+public void setProblemID(String problemID)
+{
+this.problemID = problemID;
+}
+
+
+public java.util.Date getLogTime()
+{
+return logTime;
+}
+public void setLogTime(java.util.Date logTime)
+{
+this.logTime = logTime;
+}
+
+
+public String getEventID()
+{
+return eventID;
+}
+
+
+public void setEventID(String eventID)
+{
+this.eventID = eventID;
+}
+
+
+public String getComments()
+{
+return comments;
+}
+
+
+public void setComments(String comments)
+{
+this.comments = comments;
+}
