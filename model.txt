@@ -1,0 +1,589 @@
+import java.io.*;
+import java.sql.*;
+import java.util.*;
+
+public class Model implements Serializable
+{
+// Configuration fields
+private String problemIDFile;
+private String jdbcDriver;
+private String databaseURL;
+private transient Connection con;
+// Customer fields
+private List customers;
+private String customerID;
+// Product fields
+private List products;
+private String productID;
+// Problem fields
+private List problems;
+private String problemID;
+// Problem log fields
+private List problemLogs;
+public static synchronized String assignProblemID
+(String problemIDFile)
+{
+String id = null;
+try {
+// Read the next available ID
+BufferedReader in =
+new BufferedReader(
+new FileReader(problemIDFile));
+id = in.readLine();
+in.close();
+// Increment it and rewrite the file
+String prefix = id.substring(0, 1);
+int suffix = Integer.parseInt(id.substring(1));
+suffix++;
+String newID = "0000000" + String.valueOf(suffix);
+newID = newID.substring(newID.length() - 7);
+newID = prefix + newID;
+PrintWriter out =
+new PrintWriter(
+new FileWriter(problemIDFile));
+out.println(newID);
+out.flush();
+out.close();
+}
+catch (IOException e) {
+e.printStackTrace();
+}
+finally {
+return id;
+}
+}
+public void connect()
+throws SQLException
+{
+if (isConnected())
+throw new SQLException("Already connected");
+// Verify that the driver and URL have been specified
+if (jdbcDriver == null)
+throw new SQLException("No jdbcDriver property");
+if (databaseURL == null)
+throw new SQLException("No databaseURL property");
+// Load the driver
+try {
+Class.forName(jdbcDriver).newInstance();
+}
+catch (ClassNotFoundException e) {
+throw new SQLException
+(jdbcDriver + " class could not be loaded");
+}
+// Open the connection
+con = DriverManager.getConnection(databaseURL);
+}
+
+public void disconnect()
+{
+// Close the connection
+if (con != null) {
+try {
+con.close();
+}
+catch (SQLException ignore) {}
+finally {
+con = null;
+}
+}
+}
+
+public boolean isConnected()
+{
+return (con != null);
+}
+
+public String getJdbcDriver()
+{
+return jdbcDriver;
+}
+
+public void setJdbcDriver(String jdbcDriver)
+{
+this.jdbcDriver = jdbcDriver;
+}
+/**
+* Returns the databaseURL.
+*/
+public String getDatabaseURL()
+{
+return databaseURL;
+}
+public void setDatabaseURL(String databaseURL)
+{
+this.databaseURL = databaseURL;
+}
+/**
+* Returns the problemIDFile.
+*/
+public String getProblemIDFile()
+{
+return problemIDFile;
+}
+
+public void setProblemIDFile(String problemIDFile)
+{
+this.problemIDFile = problemIDFile;
+}
+public Customer getCustomer()
+throws SQLException
+{
+// Verify that a connection exists
+if (!isConnected())
+throw new SQLException("No connection");
+// Verify that there is a current customer ID
+if (customerID == null)
+throw new SQLException("No customer ID");
+PreparedStatement pstmt = null;
+ResultSet rs = null;
+Customer customer = null;
+try {
+// Prepare the query SQL
+pstmt = con.prepareStatement
+("select * from customers where customerID = ?");
+pstmt.setString(1, customerID);
+// Execute the query
+rs = pstmt.executeQuery();
+if (rs.next())
+customer = Customer.load(rs);
+}
+finally {
+if (rs != null)
+rs.close();
+if (pstmt != null)
+pstmt.close();
+}
+// Return the customer
+return customer;
+}
+/**
+* Returns the current customer search results
+*/
+public List getCustomers()
+{
+return customers;
+}
+
+public void customerSearch(String searchArgument)
+throws SQLException
+{
+// Verify that a connection exists and that
+// the search argument has been specified
+if (!isConnected())
+throw new SQLException("No connection");
+PreparedStatement pstmt = null;
+ResultSet rs = null;
+customers = null;
+try {
+// Prepare the query SQL
+pstmt = con.prepareStatement(
+"select *"
++ " from customers"
++ " where name like ?"
++ " order by name"
+);
+searchArgument = searchArgument.trim();
+searchArgument = "%" + searchArgument + "%";
+pstmt.setString(1, searchArgument);
+// Execute the query and copy the results
+// to a List
+rs = pstmt.executeQuery();
+customers = new LinkedList();
+while (rs.next()) {
+customers.add(Customer.load(rs));
+}
+}
+finally {
+if (rs != null)
+rs.close();
+if (pstmt != null)
+pstmt.close();
+}
+}
+
+public String getCustomerID()
+{
+return customerID;
+}
+public void setCustomerID(String customerID)
+{
+this.customerID = customerID;
+}
+public Product getProduct()
+throws SQLException
+{
+// Verify that a connection exists
+if (!isConnected())
+throw new SQLException("No connection");
+// Verify that a current product ID exists
+if (productID == null)
+throw new SQLException("No product ID");
+PreparedStatement pstmt = null;
+ResultSet rs = null;
+Product product = null;
+try {
+pstmt = con.prepareStatement
+("select * from products where productID = ?");
+pstmt.setString(1, productID);
+// Execute the query
+rs = pstmt.executeQuery();
+if (rs.next())
+product = Product.load(rs);
+}
+finally {
+if (rs != null)
+rs.close();
+if (pstmt != null)
+pstmt.close();
+}
+// Return the product
+return product;
+}
+
+public List getProducts()
+{
+return products;
+}
+/
+public void productSearch(String searchArgument)
+throws SQLException
+{
+if (!isConnected())
+throw new SQLException("No connection");
+PreparedStatement pstmt = null;
+ResultSet rs = null;
+products = null;
+try {
+// Prepare the query SQL
+pstmt = con.prepareStatement(
+"select *"
++ " from products"
++ " where name like ?"
++ " order by name"
+);
+searchArgument = searchArgument.trim();
+searchArgument = "%" + searchArgument + "%";
+pstmt.setString(1, searchArgument);
+// Execute the query and copy the results
+// to a List
+rs = pstmt.executeQuery();
+products = new LinkedList();
+while (rs.next())
+products.add(Product.load(rs));
+}
+finally {
+if (rs != null)
+rs.close();
+if (pstmt != null)
+pstmt.close();
+}
+}
+public String getProductID()
+{
+return productID;
+}
+/**
+* Sets the productID.
+* @param productID the productID.
+*/
+public void setProductID(String productID)
+{
+this.productID = productID;
+}
+public List getCustomerProducts()
+throws SQLException
+{
+// Verify that a connection exists
+if (!isConnected())
+throw new SQLException("No connection");
+// Verify that a current customer ID exists
+if (customerID == null)
+throw new SQLException("No customer ID");
+PreparedStatement pstmt = null;
+ResultSet rs = null;
+List list = null;
+try {
+// Prepare the query SQL
+pstmt = con.prepareStatement(
+"select *"
++ " from custprod"
++ " where customerID = ?"
++ " order by datePurchased desc"
+);
+pstmt.setString(1, customerID);
+// Execute the query and populate the list
+rs = pstmt.executeQuery();
+list = new LinkedList();
+while (rs.next())
+list.add(CustomerProduct.load(rs));
+}
+finally {
+if (rs != null)
+rs.close();
+if (pstmt != null)
+pstmt.close();
+}
+// Return the list
+return list;
+}
+public Employee getEmployee(String employeeID)
+throws SQLException
+{
+// Verify that a connection exists
+if (!isConnected())
+throw new SQLException("No connection");
+PreparedStatement pstmt = null;
+ResultSet rs = null;
+Employee employee = null;
+try {
+// Prepare the query SQL
+pstmt = con.prepareStatement
+("select * from employees where employeeID = ?");
+pstmt.setString(1, employeeID);
+// Execute the query
+rs = pstmt.executeQuery();
+if (rs.next())
+employee = Employee.load(rs);
+}
+finally {
+if (rs != null)
+rs.close();
+if (pstmt != null)
+pstmt.close();
+}
+// Return the employee
+return employee;
+}
+public void newProblem() throws SQLException
+{
+if (getCustomerID() == null)
+throw new SQLException
+("No customer ID");
+if (getProductID() == null)
+throw new SQLException
+("No product ID");
+Problem problem = new Problem();
+String fileName = getProblemIDFile();
+problemID = assignProblemID(fileName);
+problem.setProblemID(problemID);
+problem.setDescription("");
+problem.setSeverity(2);
+problem.setDateReported(new java.util.Date());
+problem.setCustomerID(getCustomerID());
+problem.setProductID(getProductID());
+// Add to database
+PreparedStatement pstmt = null;
+try {
+pstmt = con.prepareStatement
+("insert into problems values(?, ?, ?, ?, ?, ?, ?)");
+pstmt.setString(1, problemID);
+pstmt.setString(2, problem.getDescription());
+pstmt.setInt(3, problem.getSeverity());
+pstmt.setTimestamp
+(4, Util.toTimestamp(problem.getDateReported()));
+pstmt.setNull(5, Types.TIMESTAMP);
+pstmt.setString(6, problem.getCustomerID());
+pstmt.setString(7, problem.getProductID());
+pstmt.executeUpdate();
+}
+finally {
+if (pstmt != null)
+pstmt.close();
+}
+}
+
+public void updateProblem(Problem problem)
+throws SQLException
+{
+// Verify that a connection exists
+if (!isConnected())
+throw new SQLException("No connection");
+PreparedStatement pstmt = null;
+try {
+// Prepare the query SQL
+pstmt = con.prepareStatement
+( " update problems"
++ " set"
++ " description = ?,"
++ " severity = ?,"
++ " dateResolved = ?"
++ " where problemID = ?"
+);
+pstmt.setString(1, problem.getDescription());
+pstmt.setInt(2, problem.getSeverity());
+if (problem.getDateResolved() != null)
+pstmt.setTimestamp(3,
+Util.toTimestamp(problem.getDateResolved()));
+pstmt.setString(4, problem.getProblemID());
+// Execute the update
+pstmt.executeUpdate();
+}
+finally {
+if (pstmt != null)
+pstmt.close();
+}
+}
+
+public Problem getProblem()
+throws SQLException
+{
+// Verify that a connection exists
+if (!isConnected())
+throw new SQLException("No connection");
+// Verify that a current problem ID exists
+if (problemID == null)
+throw new SQLException("No problem ID");
+PreparedStatement pstmt = null;
+ResultSet rs = null;
+Problem problem = null;
+try {
+// Prepare the query SQL
+pstmt = con.prepareStatement
+("select * from problems where problemID = ?");
+pstmt.setString(1, problemID);
+rs = pstmt.executeQuery();
+if (rs.next())
+problem = Problem.load(rs);
+}
+finally {
+if (rs != null)
+rs.close();
+if (pstmt != null)
+pstmt.close();
+}
+// Return the problem
+return problem;
+}
+
+public List getProblems()
+{
+return problems;
+}
+exception SQLException if a database error occurs
+*/
+public void customerProblemsSearch(String customerID)
+throws SQLException
+{
+// Verify that a connection exists
+if (!isConnected())
+throw new SQLException("No connection");
+PreparedStatement pstmt = null;
+ResultSet rs = null;
+problems = null;
+try {
+// Prepare the query SQL
+pstmt = con.prepareStatement
+("select * from problems where customerID = ?");
+pstmt.setString(1, customerID);
+
+rs = pstmt.executeQuery();
+problems = new LinkedList();
+while (rs.next())
+problems.add(Problem.load(rs));
+}
+finally {
+if (rs != null)
+rs.close();
+if (pstmt != null)
+pstmt.close();
+}
+}
+
+public void productProblemsSearch(String productID)
+throws SQLException
+{
+// Verify that a connection exists
+if (!isConnected())
+throw new SQLException("No connection");
+PreparedStatement pstmt = null;
+ResultSet rs = null;
+problems = null;
+try {
+// Prepare the query SQL
+pstmt = con.prepareStatement
+("select * from problems where productID = ?");
+pstmt.setString(1, productID);
+// Execute the query and copy the results
+// to a List
+rs = pstmt.executeQuery();
+problems = new LinkedList();
+while (rs.next())
+problems.add(Problem.load(rs));
+}
+finally {
+if (rs != null)
+rs.close();
+if (pstmt != null)
+pstmt.close();
+}
+}
+/**
+* Returns the problemID.
+*/
+public String getProblemID()
+{
+return problemID;
+}
+
+public void setProblemID(String problemID)
+{
+this.problemID = problemID;
+}
+public void addProblemLog(ProblemLog log)
+throws SQLException
+{
+// Verify that a connection exists
+if (!isConnected())
+throw new SQLException("No connection");
+PreparedStatement pstmt = null;
+try {
+// Prepare the insert SQL
+pstmt = con.prepareStatement
+("insert into problog values(?, ?, ?, ?)");
+pstmt.setString(1, log.getProblemID());
+pstmt.setTimestamp(2, Util.toTimestamp(log.getLogTime()));
+pstmt.setString(3, log.getEventID());
+pstmt.setString(4, log.getComments());
+// Execute the statement
+pstmt.executeUpdate();
+}
+finally {
+if (pstmt != null)
+pstmt.close();
+}
+}
+
+public void problemLogSearch(String problemID)
+throws SQLException
+{
+// Verify that a connection exists
+if (!isConnected())
+throw new SQLException("No connection");
+PreparedStatement pstmt = null;
+ResultSet rs = null;
+problemLogs = null;
+try {
+// Prepare the query SQL
+pstmt = con.prepareStatement
+("select * from problog where problemID = ?");
+pstmt.setString(1, problemID);
+
+rs = pstmt.executeQuery();
+problemLogs = new LinkedList();
+while (rs.next())
+problemLogs.add(ProblemLog.load(rs));
+}
+finally {
+if (rs != null)
+rs.close();
+if (pstmt != null)
+pstmt.close();
+}
+}
+
+public List getProblemLogs()
+{
+return problemLogs;
+}
+}
+}
