@@ -1,0 +1,21 @@
+<%@ page session="true" %>
+<%@ page errorPage="/ErrorPage.jsp" %>
+<%@ page import="com.lyricnote.support.model.*" %>
+<%@ include file="/WEB-INF/InitModel.jsp" %>
+<HTML>
+<HEAD>
+<TITLE>Customer Search</TITLE>
+<LINK REL="stylesheet" HREF="<%= BASEURL %>/style.css">
+</HEAD>
+<BODY>
+<%@ include file="/WEB-INF/Banner.jsp" %>
+<H3>Customer Search</H3>
+<FORM
+METHOD="POST"
+ACTION="<%= CONTROLLER %>/Customers/Search">
+<B>Customer name</B>:
+<INPUT TYPE="TEXT" NAME="customerSearchArgument" SIZE="20">
+<INPUT TYPE="SUBMIT" VALUE="Search">
+</FORM>
+</BODY>
+</HTML>
