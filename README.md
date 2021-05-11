@@ -1,2 +1,1 @@
-# finder
-An MVC java based web application  that helps automate the process of technical errors and issues reporting and response by the technical team
+This is a java-based web application employing the MVC architeture to help automate the process of giving responses to customers on technical errors reporting. The projeect is in progress and hope to use chatbots and voicebots to meet the objective.
